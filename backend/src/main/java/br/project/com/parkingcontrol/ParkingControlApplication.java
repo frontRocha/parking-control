@@ -1,4 +1,4 @@
-package br.com.project.parkingcontrol;
+package br.project.com.parkingcontrol;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,5 +17,5 @@ public class ParkingControlApplication {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
+
