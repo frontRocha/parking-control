@@ -62,8 +62,8 @@ public class JWTAuthenticate extends UsernamePasswordAuthenticationFilter {
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
                                               AuthenticationException failed) throws IOException, ServletException {
-        ErrorResponse errorResponse = BusinessException.setErrorResponse("user not default", HttpStatus.NOT_FOUND.value());
 
+        ErrorResponse errorResponse = BusinessException.setErrorResponse("user not found", HttpStatus.NOT_FOUND.value());
         writeJsonResponse(response, errorResponse);
     }
 
@@ -101,7 +101,7 @@ public class JWTAuthenticate extends UsernamePasswordAuthenticationFilter {
 
     private void writeJsonResponse(HttpServletResponse response, Object responseObject) throws IOException {
         response.setContentType("application/json");
-        response.setStatus(HttpStatus.OK.value());
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.writeValue(response.getWriter(), responseObject);

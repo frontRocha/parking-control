@@ -38,8 +38,6 @@ public class AllocationService {
 
     }
 
-
-
     public void existsAllocation(Optional<Allocation> allocationOptional) throws BusinessException {
         if(!allocationOptional.isPresent()) {
             throw new BusinessException("This allocation does not exists");

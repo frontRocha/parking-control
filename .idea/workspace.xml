@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="84787d5d-1c10-4b84-89f8-f912305bce95" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="ProjectId" id="2RCkYT1TO0NEBPoZMonPPPtLStM" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DatabaseDriversLRU" value="mysql" />
+    <property name="RequestMappingsPanelOrder0" value="0" />
+    <property name="RequestMappingsPanelOrder1" value="1" />
+    <property name="RequestMappingsPanelWidth0" value="75" />
+    <property name="RequestMappingsPanelWidth1" value="75" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/backend" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\PC\Documents\parking-control\src" />
+    </key>
+    <key name="CreateBuilderDialog.RecentsKey">
+      <recent name="br.com.project.parkingcontrol.domain.history" />
+      <recent name="br.com.project.parkingcontrol.domain.customer" />
+      <recent name="br.com.project.parkingcontrol.security.filter" />
+      <recent name="br.com.project.parkingcontrol.domain.errorResponse" />
+      <recent name="br.com.project.parkingcontrol.domain.authenticationResponse" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\PC\Documents\parking-control\src" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="br.com.project.parkingcontrol" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="ParkingControlApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="parking-control" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="br.com.project.parkingcontrol.ParkingControlApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="84787d5d-1c10-4b84-89f8-f912305bce95" name="Changes" comment="" />
+      <created>1686761502199</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1686761502199</updated>
+      <workItem from="1686761504242" duration="3074000" />
+      <workItem from="1686830689097" duration="9175000" />
+      <workItem from="1686856875259" duration="8613000" />
+      <workItem from="1686924478890" duration="7658000" />
+      <workItem from="1687027163707" duration="9446000" />
+      <workItem from="1687046403145" duration="3478000" />
+      <workItem from="1687127482716" duration="1626000" />
+      <workItem from="1687175942937" duration="16084000" />
+      <workItem from="1687278778667" duration="7038000" />
+      <workItem from="1687313063156" duration="1133000" />
+      <workItem from="1687353428726" duration="4489000" />
+      <workItem from="1687438239491" duration="12978000" />
+      <workItem from="1687525544029" duration="7040000" />
+      <workItem from="1687609954085" duration="8629000" />
+      <workItem from="1687786974786" duration="11064000" />
+      <workItem from="1687888010907" duration="727000" />
+      <workItem from="1687956641305" duration="13639000" />
+      <workItem from="1687985750000" duration="3985000" />
+      <workItem from="1687997889249" duration="2384000" />
+      <workItem from="1688041977572" duration="11190000" />
+      <workItem from="1688137079909" duration="189000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+</project>

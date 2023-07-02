@@ -71,9 +71,8 @@ public class JWTValidate extends OncePerRequestFilter {
         return user;
     }
 
-    private void writerResponseError(HttpServletResponse response,
-                                     ErrorResponse errorResponse) throws IOException {
-        response.setStatus(errorResponse.getCodeError());
+    private void writerResponseError(HttpServletResponse response, ErrorResponse errorResponse) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
         response.getWriter().write("{\"message\":\"" + errorResponse.getMessageError() + "\", \"code\":\"" + errorResponse.getCodeError() + "\"}");
         response.getWriter().flush();
