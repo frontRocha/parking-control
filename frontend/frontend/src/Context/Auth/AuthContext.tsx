@@ -10,6 +10,7 @@ export const AuthContext: React.Context<AuthContextProviderInterface> = createCo
 
 export default function AuthContextProvider({ children }: AuthChildren) {
     const [user, setUser] = useState<ResponseUser>();
+    const [token, setToken] = useState<string>('')
     const [loading, setLoading] = useState<boolean>(true);
 
     const authContextServiceInstance: AuthContextService = new AuthContextService();
@@ -24,7 +25,8 @@ export default function AuthContextProvider({ children }: AuthChildren) {
         const receiveToken: string | null = getAuthCredentialToken();
 
         if (receiveUser && receiveToken && receiveUser.trim() && receiveToken.trim()) {
-            setUser(JSON.parse(receiveUser));
+            setDataUser(JSON.parse(receiveUser));
+            setTokenUser(JSON.parse(receiveToken))
         }
 
         hideLoader();
@@ -49,6 +51,7 @@ export default function AuthContextProvider({ children }: AuthChildren) {
             setAuthCredentialUser(response.data.data);
             setAuthCredentialToken(response.data.token);
             setDataUser(response.data.data);
+            setTokenUser(response.data.token)
         } catch (err: unknown) {
             if (err instanceof Error) {
                 throw err;
@@ -77,12 +80,16 @@ export default function AuthContextProvider({ children }: AuthChildren) {
 
     const setDataUser = (data: ResponseUser): void => setUser(data);
 
+    const setTokenUser = (token: string): void => {
+        setToken(token)
+    }
+
     const removeDataUser = (): void => setUser(undefined);
 
     const hideLoader = (): void => setLoading(false);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated: !!user, user, loading, signinAuth, signupAuth, runLogout }}>
+        <AuthContext.Provider value={{ isAuthenticated: !!user, user, token, loading, signinAuth, signupAuth, runLogout }}>
             {children}
         </AuthContext.Provider>
     )

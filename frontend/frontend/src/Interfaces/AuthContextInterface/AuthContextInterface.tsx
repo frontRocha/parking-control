@@ -8,6 +8,7 @@ export interface ResponseUser {
 export interface AuthContextProviderInterface {
     isAuthenticated: boolean;
     user: ResponseUser | undefined;
+    token: string;
     loading: boolean;
     signinAuth: (data: FieldValues) => Promise<void | unknown>;
     signupAuth: (data: FieldValues) => Promise<void | unknown>;

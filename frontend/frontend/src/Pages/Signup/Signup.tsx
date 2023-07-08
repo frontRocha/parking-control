@@ -77,7 +77,7 @@ export default function Signup() {
                                         <span>Entrar</span>
                                     </span>
                                     :
-                                    <span className='w-full flex items-center justify-center'><LoaderComponent /></span>}
+                                    <span className='w-full flex items-center justify-center'><LoaderComponent color="white" /></span>}
 
                             </button>
                         </div>

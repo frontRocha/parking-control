@@ -2,7 +2,7 @@ import { useContext } from "react"
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom"
 import AuthContextProvider, { AuthContext } from "../Context/Auth/AuthContext"
 import Login from "../Pages/Login/Login"
-import Panel from "../Pages/Vacancies/Vacancie"
+import BlockPanel from "../Pages/BlockPanel/BlockPanel"
 import Signup from "../Pages/Signup/Signup"
 import LoaderContext from "../Context/Auth/LoaderContext/LoaderContext"
 
@@ -31,7 +31,7 @@ export default function Router() {
         }
 
         if(isAuthenticated) {
-            return <Navigate to="/panel" />
+            return <Navigate to="/block-panel" />
         }
 
         return children;
@@ -43,7 +43,7 @@ export default function Router() {
                 <Routes>
                     <Route path="/login" element={<AuthenticatedUserSignin><Login /></AuthenticatedUserSignin>} />
                     <Route path="/signup" element={<AuthenticatedUserSignin><Signup /></AuthenticatedUserSignin>} />
-                    <Route path="/panel" element={<AuthenticatedUserLogout><Panel /></AuthenticatedUserLogout>} />
+                    <Route path="/block-panel" element={<AuthenticatedUserLogout><BlockPanel /></AuthenticatedUserLogout>} />
                 </Routes>
             </BrowserRouter>
         </AuthContextProvider>

@@ -2,9 +2,7 @@
   display: block;
   width: 23px;
   height: 23px;
-  border: 3px solid transparent;
   border-radius: 50%;
-  border-right-color: rgba(255, 255, 255, 0.7);
   animation: spinner-anim 0.8s linear infinite;
 }
 
