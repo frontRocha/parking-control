@@ -54,7 +54,7 @@ public class JWTAuthenticate extends UsernamePasswordAuthenticationFilter {
             ));
 
         } catch (IOException e) {
-            throw new RuntimeException("Falha ao autenticar usuario", e);
+            throw new RuntimeException("failed to authenticate user", e);
         }
     }
 

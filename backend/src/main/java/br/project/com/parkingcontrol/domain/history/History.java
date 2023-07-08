@@ -3,6 +3,7 @@ package br.project.com.parkingcontrol.domain.history;
 import br.project.com.parkingcontrol.domain.user.User;
 import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -17,24 +18,27 @@ public class History {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+    @Column(nullable = false, unique = false)
     private LocalDateTime arrivalTime;
+    @Column(nullable = false, unique = false)
     private LocalDateTime departureTime;
+    @Column(nullable = false, unique = false)
     private String customerName;
+    @Column(nullable = false, unique = false)
     private String customerLastName;
+    @Column(nullable = false, unique = false)
     private String plateCar;
+    @Column(nullable = false, unique = false)
     private Integer vacancieName;
-    private char blockName;
+    @Column(nullable = false, unique = false)
+    private String blockName;
+    @Column(nullable = false, unique = false)
     private double total;
 
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "vacancie_id")
-    private Vacancie vacancie;
 
     public UUID getId() {
         return id;
@@ -64,7 +68,7 @@ public class History {
         return vacancieName;
     }
 
-    public char getBlockName() {
+    public String getBlockName() {
         return blockName;
     }
 
@@ -76,10 +80,6 @@ public class History {
         return user;
     }
 
-    public Vacancie getVacancie() {
-        return vacancie;
-    }
-
     public static class Builder {
         private UUID id;
         private LocalDateTime arrivalTime;
@@ -88,10 +88,22 @@ public class History {
         private String customerLastName;
         private String plateCar;
         private Integer vacancieName;
-        private char blockName;
+        private String blockName;
         private double total;
         private User user;
-        private Vacancie vacancie;
+
+        public Builder() {
+            this.id = null;
+            this.arrivalTime = null;
+            this.departureTime = null;
+            this.customerName = null;
+            this.customerLastName = null;
+            this.plateCar = null;
+            this.vacancieName = null;
+            this.blockName = null;
+            this.total = 0;
+            this.user = null;
+        }
 
         public Builder setId(UUID id) {
             this.id = id;
@@ -128,7 +140,7 @@ public class History {
             return this;
         }
 
-        public Builder setBlockName(char blockName) {
+        public Builder setBlockName(String blockName) {
             this.blockName = blockName;
             return this;
         }
@@ -143,13 +155,8 @@ public class History {
             return this;
         }
 
-        public Builder setVacancie(Vacancie vacancie) {
-            this.vacancie = vacancie;
-            return this;
-        }
-
         public History build() {
-            return new History(id, arrivalTime, departureTime, customerName, customerLastName, plateCar, vacancieName, blockName, total, user, vacancie);
+            return new History(id, arrivalTime, departureTime, customerName, customerLastName, plateCar, vacancieName, blockName, total, user);
         }
     }
 }

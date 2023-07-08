@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/")
 public class UserController {
 
@@ -24,7 +25,6 @@ public class UserController {
     private final UserServiceImpl userServiceImpl;
     private final PasswordEncoder encoder;
     private final TokenGenerator tokenGenerator;
-
     private static Map<String, Object> userData = new HashMap<>();
 
     public UserController(UserRepository repository,
@@ -37,7 +37,6 @@ public class UserController {
         this.encoder = encoder;
     }
 
-    @CrossOrigin(origins = "*")
     @PostMapping("/signup")
     public ResponseEntity<Object> signup(@RequestBody User user) {
         try {
@@ -47,19 +46,13 @@ public class UserController {
             LocalDateTime registrationDate = generateDateTime();
             setRegistrationDate(registrationDate, user);
 
-            var userModel = new User.Builder()
-                    .setLogin(user.getLogin())
-                    .setPassoword(user.getPassword())
-                    .setResgistrationDate(registrationDate)
-                    .build();
+            User userModel = createUserModel(user, registrationDate);
+            saveUser(userModel);
 
-            ResponseEntity.ok(repository.save(userModel));
-
-            String token = tokenGenerator.generateTokenAuthentication(user.getLogin(), userModel.getId());
+            String token = generateTokenAuthentication(user, userModel);
 
             defineUserIdInUserData(userModel.getId());
             defineUserLoginInUserData(user.getLogin());
-
             AuthenticationResponse response = setUserDataInAuthenticationResponse(token);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -68,16 +61,25 @@ public class UserController {
         }
     }
 
-    private void existsByLoginUser(User user) throws BusinessException {
-        userServiceImpl.existsByEmail(user.getLogin());
-    }
-
-    private void setUserPassword(User user) {
-        user.setPassword(encoder.encode(user.getPassword()));
+    private String generateTokenAuthentication(User user,
+                                               User userModel) {
+        return tokenGenerator.generateTokenAuthentication(user.getLogin(), userModel.getId());
     }
 
     private LocalDateTime generateDateTime() {
         return LocalDateTime.now(ZoneId.of("UTC"));
+    }
+
+    private void existsByLoginUser(User user) throws BusinessException {
+        userServiceImpl.existsByEmail(user.getLogin());
+    }
+
+    private User createUserModel(User user, LocalDateTime registrationDate) {
+        return new User.Builder()
+                .setLogin(user.getLogin())
+                .setPassword(user.getPassword())
+                .setRegistrationDate(registrationDate)
+                .build();
     }
 
     private void setRegistrationDate(LocalDateTime registrationDate, User user) {
@@ -92,10 +94,18 @@ public class UserController {
         userData.put("id", id);
     }
 
+    private void setUserPassword(User user) {
+        user.setPassword(encoder.encode(user.getPassword()));
+    }
+
     private AuthenticationResponse setUserDataInAuthenticationResponse(String token) {
         return new AuthenticationResponse.Builder()
                 .setToken(token)
                 .setData(userData)
                 .build();
+    }
+
+    private void saveUser(User userModel) {
+        ResponseEntity.ok(repository.save(userModel));
     }
 }

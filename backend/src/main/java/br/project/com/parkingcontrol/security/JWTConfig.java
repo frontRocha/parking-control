@@ -86,8 +86,7 @@ public class JWTConfig {
         corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
         corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Requestor-Type"));
         corsConfig.setExposedHeaders(Arrays.asList("X-Get-Header"));
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
         return source;
     }

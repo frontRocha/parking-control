@@ -13,7 +13,7 @@ public class AllocationFinishedResponse {
     private double total;
     private String name;
     private Integer vacancieNumber;
-    private char blockName;
+    private String blockName;
 
     public LocalDateTime getArrivalTime() {
         return arrivalTime;
@@ -35,7 +35,7 @@ public class AllocationFinishedResponse {
         return vacancieNumber;
     }
 
-    public char getBlockName() {
+    public String getBlockName() {
         return blockName;
     }
 
@@ -45,7 +45,16 @@ public class AllocationFinishedResponse {
         private double total;
         private String name;
         private Integer vacancieNumber;
-        private char blockName;
+        private String blockName;
+
+        public Builder() {
+            this.arrivalTime = null;
+            this.departureTime = null;
+            this.total = 0;
+            this.name = null;
+            this.vacancieNumber = null;
+            this.blockName = null;
+        }
 
         public LocalDateTime getArrivalTime() {
             return arrivalTime;
@@ -67,7 +76,7 @@ public class AllocationFinishedResponse {
             return vacancieNumber;
         }
 
-        public char getBlockName() {
+        public String getBlockName() {
             return blockName;
         }
 
@@ -96,7 +105,7 @@ public class AllocationFinishedResponse {
             return this;
         }
 
-        public Builder setBlockName(char blockName) {
+        public Builder setBlockName(String blockName) {
             this.blockName = blockName;
             return this;
         }

@@ -21,7 +21,7 @@ public class VacancieService {
         return vacancieRepository.findAllByUserIdOrderByVacancieNumberAsc(userId);
     }
 
-    public Optional<Vacancie> findyById(UUID id) {
+    public Optional<Vacancie> findById(UUID id) {
         return vacancieRepository.findById(id);
     }
 
@@ -62,6 +62,18 @@ public class VacancieService {
     public void validateStatusVacancie(Vacancie vacancie) throws BusinessException {
         if(vacancie.getStatus()) {
             throw new BusinessException("This vacancie is already in use");
+        }
+    }
+
+    public void validationExistsVacancie(Optional<Vacancie> bookModelOptional) throws BusinessException {
+        if(!bookModelOptional.isPresent()) {
+            throw new BusinessException("This vacancy does not exist");
+        }
+    }
+
+    public void verifyRelationUserWithVacancy(Integer userId, Vacancie vacancie) throws BusinessException {
+        if(userId != vacancie.getUser().getId()) {
+            throw new BusinessException("the vacancy is not exists");
         }
     }
 }

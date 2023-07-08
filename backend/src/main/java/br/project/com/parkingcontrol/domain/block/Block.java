@@ -4,6 +4,7 @@ import br.project.com.parkingcontrol.domain.user.User;
 import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,8 +21,8 @@ public class Block {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-    @Column(nullable = false, unique = false)
-    private char blockName;
+    @Column(nullable = false, unique = false, length = 1)
+    private String blockName;
     @Column(nullable = false, unique = false)
     private Integer totalVacancies;
 
@@ -37,7 +38,7 @@ public class Block {
         return id;
     }
 
-    public char getBlockName() {
+    public String getBlockName() {
         return blockName;
     }
 
@@ -53,21 +54,23 @@ public class Block {
         return vacancieList;
     }
 
-    private static void validarCampos(char campo1, int campo2) {
-        Preconditions.checkNotNull(campo1, "Campo1 não pode ser nulo");
-        Preconditions.checkArgument(campo2 > 0,"Campo2 deve ser maior que zero");
+    private static void fieldValidation(String blockName, Integer totalVacancies, User user) {
+        Preconditions.checkNotNull(Strings.isNullOrEmpty(blockName),"block name cannot be null");
+        Preconditions.checkArgument(blockName.length() == 1,"block name must be just one character");
+        Preconditions.checkArgument(totalVacancies > 0,"the total number of vacancies must be greater than 0");
+        Preconditions.checkNotNull(user,"user cannot be null");
     }
 
     public static class Builder {
         private UUID id;
-        private char blockName;
+        private String blockName;
         private Integer totalVacancies;
         private User user;
         private List<Vacancie> vacancieList;
 
         public Builder() {
             this.id = null;
-            this.blockName = 'A';
+            this.blockName = null;
             this.totalVacancies = null;
             this.user = null;
             this.vacancieList = null;
@@ -78,7 +81,7 @@ public class Block {
             return this;
         }
 
-        public Builder setBlockName(char blockName) {
+        public Builder setBlockName(String blockName) {
             this.blockName = blockName;
             return this;
         }
@@ -102,7 +105,7 @@ public class Block {
             return id;
         }
 
-        public char getBlockName() {
+        public String getBlockName() {
             return blockName;
         }
 
@@ -115,7 +118,7 @@ public class Block {
         }
 
         public Block build() {
-            validarCampos(blockName, totalVacancies);
+            fieldValidation(blockName, totalVacancies, user);
             return new Block(id, blockName, totalVacancies, user, vacancieList);
         }
     }

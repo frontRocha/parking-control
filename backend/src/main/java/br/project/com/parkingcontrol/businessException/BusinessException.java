@@ -4,9 +4,13 @@ import br.project.com.parkingcontrol.util.errorResponse.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-public class BusinessException extends IllegalArgumentException {
+public class BusinessException extends RuntimeException{
     public BusinessException(String msg) {
         super(msg);
+    }
+
+    public BusinessException(Exception ex) {
+        super(ex);
     }
 
     public static ResponseEntity<Object> handleBusinessException(BusinessException message, Integer httpStatus) throws IllegalArgumentException {

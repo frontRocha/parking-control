@@ -19,7 +19,9 @@ public class Vacancie {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+    @Column(nullable = false, unique = false)
     private Integer vacancieNumber;
+    @Column(nullable = false, unique = false)
     private boolean status;
 
     @JsonIgnore
@@ -34,10 +36,6 @@ public class Vacancie {
 
     @OneToOne(mappedBy = "vacancie")
     private Allocation allocation;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "vacancie")
-    private List<History> historyList;
 
     public UUID getId() {
         return id;
@@ -87,10 +85,6 @@ public class Vacancie {
         return allocation;
     }
 
-    public List<History> getHistoryList() {
-        return historyList;
-    }
-
     public static class Builder {
         private UUID id;
         private Integer vacancieNumber;
@@ -98,7 +92,6 @@ public class Vacancie {
         private User user;
         private Block block;
         private Allocation allocation;
-        private List<History> historyList;
 
         public Builder() {
             this.id = null;
@@ -107,7 +100,6 @@ public class Vacancie {
             this.user = null;
             this.block = null;
             this.allocation = null;
-            this.historyList = null;
         }
 
         public Builder setId(UUID id) {
@@ -140,13 +132,8 @@ public class Vacancie {
             return this;
         }
 
-        public Builder setHistory(List<History> historyList) {
-            this.historyList = historyList;
-            return this;
-        }
-
         public Vacancie build() {
-            return new Vacancie(id, vacancieNumber, status, user, block, allocation, historyList);
+            return new Vacancie(id, vacancieNumber, status, user, block, allocation);
         }
     }
 }

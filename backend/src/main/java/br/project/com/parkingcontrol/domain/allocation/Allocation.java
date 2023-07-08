@@ -4,6 +4,8 @@ import br.project.com.parkingcontrol.domain.customer.Customer;
 import br.project.com.parkingcontrol.domain.user.User;
 import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -18,13 +20,20 @@ public class Allocation {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+    @Column(nullable = false, unique = false)
     private LocalDateTime arrivalTime;
+    @Column(nullable = true, unique = false)
     private LocalDateTime departureTime;
+    @Column(nullable = false, unique = false)
     private String customerName;
+    @Column(nullable = false, unique = true)
     private String customerLastName;
+    @Column(nullable = false, unique = true)
     private String plateCar;
+    @Column(nullable = false, unique = false)
     private Integer vacancieName;
-    private char blockName;
+    @Column(nullable = false, unique = false)
+    private String blockName;
 
     @JsonIgnore
     @ManyToOne
@@ -69,7 +78,7 @@ public class Allocation {
         return vacancieName;
     }
 
-    public char getBlockName() {
+    public String getBlockName() {
         return blockName;
     }
 
@@ -85,6 +94,13 @@ public class Allocation {
         return customer;
     }
 
+    private static void fieldValidation(String customerName, String customerLastName, String plateCar) {
+        Preconditions.checkArgument(customerName.length() > 1, "customer name cannot be null");
+        Preconditions.checkArgument(customerLastName.length() > 1, "customer last name cannot be null");
+        Preconditions.checkArgument(plateCar.length() == 8, "The car plate must have exactly 8 characters.");
+        Preconditions.checkArgument(plateCar.length() < 9, "The car plate cannot have more than 8 characters.");
+    }
+
     public static class Builder {
         private UUID id;
         private LocalDateTime arrivalTime;
@@ -96,7 +112,7 @@ public class Allocation {
         private String customerLastName;
         private String plateCar;
         private Integer vacancieName;
-        private char blockName;
+        private String blockName;
 
         public Builder() {
             this.id = null;
@@ -106,7 +122,7 @@ public class Allocation {
             this.customerLastName = null;
             this.plateCar = null;
             this.vacancieName = null;
-            this.blockName = 'A';
+            this.blockName = null;
             this.user = null;
             this.vacancie = null;
             this.customer = null;
@@ -162,12 +178,13 @@ public class Allocation {
             return this;
         }
 
-        public Builder setBlockName(char blockName) {
+        public Builder setBlockName(String blockName) {
             this.blockName = blockName;
             return this;
         }
 
         public Allocation build() {
+            fieldValidation(customerName, customerLastName, plateCar);
             return new Allocation(id, arrivalTime, departureTime, customerName, customerLastName, plateCar, vacancieName, blockName, user, vacancie, customer);
         }
     }

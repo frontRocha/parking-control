@@ -25,6 +25,7 @@ public class AllocationService {
         return allocationRepository.findById(id);
     }
 
+    @Transactional
     public Allocation createAllocation(Allocation allocation) {
         return allocationRepository.save(allocation);
     }
@@ -34,13 +35,15 @@ public class AllocationService {
         allocationRepository.deleteById(id);
     }
 
-    public void validateStatusVacancie(Vacancie vacancie) {
-
-    }
-
     public void existsAllocation(Optional<Allocation> allocationOptional) throws BusinessException {
         if(!allocationOptional.isPresent()) {
             throw new BusinessException("This allocation does not exists");
+        }
+    }
+
+    public void verifyRelationUserWithAllocation(Optional<Allocation> allocation, Integer userId) throws BusinessException {
+        if(allocation.orElse(null).getUser().getId() != userId) {
+            throw new BusinessException("This allocation does not exist");
         }
     }
 }

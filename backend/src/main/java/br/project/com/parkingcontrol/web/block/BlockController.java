@@ -4,6 +4,7 @@ import br.project.com.parkingcontrol.businessException.BusinessException;
 import br.project.com.parkingcontrol.domain.block.Block;
 import br.project.com.parkingcontrol.domain.block.BlockService;
 import br.project.com.parkingcontrol.domain.user.User;
+import br.project.com.parkingcontrol.domain.user.UserServiceImpl;
 import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
 import br.project.com.parkingcontrol.util.TokenGenerator;
 import br.project.com.parkingcontrol.domain.user.UserRepository;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,36 +27,47 @@ public class BlockController {
     private final UserRepository userRepository;
     private final BlockService blockService;
     private final VacancieService vacancieService;
+    private final UserServiceImpl userService;
 
     BlockController(TokenGenerator tokenGenerator,
                     UserRepository userRepository,
-                    BlockService blockService, VacancieService vacancieService) {
+                    BlockService blockService, VacancieService vacancieService,
+                    UserServiceImpl userService) {
         this.tokenGenerator = tokenGenerator;
         this.userRepository = userRepository;
         this.blockService = blockService;
         this.vacancieService = vacancieService;
+        this.userService = userService;
     }
 
     @GetMapping
     public ResponseEntity<List<Block>> getAllBlocks(@RequestHeader("Authorization") String authorizationHeader) {
-        String token = tokenGenerator.extractTokenFromAuthorizationHeader(authorizationHeader);
-        Integer userId = tokenGenerator.extractUserIdFromToken(token);
+        String token = extractTokenFromAuthorizationHeader(authorizationHeader);
+        Integer userId = extractUserIdFromToken(token);
 
-        return ResponseEntity.status(HttpStatus.OK).body(blockService.findAll(userId));
+        List<Block> blocks = getBlocksModels(userId);
+        rearrangeVacanciesInBlocks(blocks);
+
+        return ResponseEntity.status(HttpStatus.OK).body(blocks);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Object> getOneBlock(@PathVariable(value = "id") UUID id,
                                               @RequestHeader("Authorization") String authorizationHeader) {
         try {
-            Optional<Block> blockOptional = blockService.findById(id);
-            String token = tokenGenerator.extractTokenFromAuthorizationHeader(authorizationHeader);
-            Integer userId = tokenGenerator.extractUserIdFromToken(token);
+            String token = extractTokenFromAuthorizationHeader(authorizationHeader);
+            Integer userId = extractUserIdFromToken(token);
 
-            blockService.validationExistsbook(blockOptional);
-            verifyUser(blockOptional, userId);
+            Optional<Block> blockOptional = getBlockModel(id);
+            validateExistsBook(blockOptional);
 
-            return ResponseEntity.status(HttpStatus.OK).body(blockOptional.get());
+            verifyRelationUserWithAllocation(blockOptional, userId);
+
+            Optional<Block> block = getBlockModel(id);
+            rearrangeVacancies(block.get());
+
+            return ResponseEntity.status(HttpStatus.OK).body(block.get());
         } catch(BusinessException err) {
             return BusinessException.handleBusinessException(err, HttpStatus.CONFLICT.value());
         }
@@ -64,23 +77,22 @@ public class BlockController {
     public ResponseEntity<Object> createBlock(@RequestBody @Valid Block block,
                                               @RequestHeader("Authorization") String authorizationHeader) {
         try {
-            String token = tokenGenerator.extractTokenFromAuthorizationHeader(authorizationHeader);
-            Integer userId = tokenGenerator.extractUserIdFromToken(token);
+            String token = extractTokenFromAuthorizationHeader(authorizationHeader);
+            Integer userId = extractUserIdFromToken(token);
 
-            blockService.existsByBlockName(block.getBlockName(), userId);
-
-            User user = getUserModel(userId);
+            existsByBlockName(block, userId);
+            User user = userService.getUserModel(userId);
 
             Block.Builder blockBuilder = createBlockModel(block, block.getTotalVacancies(), user);
-            Block.Builder setVacancieListInBlockBuilder = setVacanceListInBlockBuilder(blockBuilder, userId);
-            Block initializeInstanceBlock = initializeInstanceBlock(setVacancieListInBlockBuilder);
-            Block blockBuilded = blockService.save(initializeInstanceBlock);
+            Block.Builder blockBuilderFinish = setVacanceListInBlockBuilder(blockBuilder, userId);
+            Block blockBuild = saveDataBlock(blockBuilderFinish.build());
 
-            createVacanciesForBlock(blockBuilded, block.getTotalVacancies(), user);
+            createVacanciesForBlock(blockBuild, block.getTotalVacancies(), user);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(blockBuilded);
-        } catch(BusinessException err) {
-            return BusinessException.handleBusinessException(err, HttpStatus.UNAUTHORIZED.value());
+            return ResponseEntity.status(HttpStatus.CREATED).body(blockBuild);
+        } catch (Exception ex) {
+            BusinessException businessException = new BusinessException(ex.getMessage());
+            return BusinessException.handleBusinessException(businessException, HttpStatus.UNAUTHORIZED.value());
         }
     }
 
@@ -89,25 +101,23 @@ public class BlockController {
                                             @RequestBody @Valid Block block,
                                             @RequestHeader("Authorization") String authorizationHeader) {
         try {
-            Optional<Block> blockOptional = blockService.findById(id);
+            String token = extractTokenFromAuthorizationHeader(authorizationHeader);
+            Integer userId = extractUserIdFromToken(token);
 
-            String token = tokenGenerator.extractTokenFromAuthorizationHeader(authorizationHeader);
-            Integer userId = tokenGenerator.extractUserIdFromToken(token);
+            Optional<Block> blockOptional = getBlockModel(id);
 
-            blockService.validationExistsbook(blockOptional);
-            verifyUser(blockOptional, userId);
-            blockService.existsByBlockNameAndIdNot(block.getBlockName(), blockOptional.get().getId(), userId);
+            validateExistsBook(blockOptional);
+            verifyRelationUserWithAllocation(blockOptional, userId);
+            existsByBlockNameAndIdNot(block, blockOptional, userId);
 
             Block.Builder blockBuilder = updateBlockModel(blockOptional, block);
-
             updateVacancyNumbers(blockBuilder, block.getTotalVacancies());
+            setVacanceListInBlockBuilder(blockBuilder, userId);
 
-            blockBuilder.setVacancieList(vacancieService.getVacancies(userId));
-            var blockBuild = blockService.save(blockBuilder.build());
-
-            return ResponseEntity.status(HttpStatus.OK).body(blockBuild);
-        } catch(BusinessException err) {
-            return BusinessException.handleBusinessException(err, HttpStatus.UNAUTHORIZED.value());
+            return ResponseEntity.status(HttpStatus.OK).body(blockService.save(blockBuilder.build()));
+        } catch(Exception err) {
+            BusinessException businessException = new BusinessException(err.getMessage());
+            return BusinessException.handleBusinessException(businessException, HttpStatus.UNAUTHORIZED.value());
         }
     }
 
@@ -115,16 +125,16 @@ public class BlockController {
     public ResponseEntity<Object> deleteBlock(@PathVariable(value = "id") UUID id,
                                               @RequestHeader("Authorization") String authorizationHeader) {
         try {
-            Optional<Block> blockOptional = blockService.findById(id);
+            String token = extractTokenFromAuthorizationHeader(authorizationHeader);
+            Integer userId = extractUserIdFromToken(token);
 
-            String token = tokenGenerator.extractTokenFromAuthorizationHeader(authorizationHeader);
-            Integer userId = tokenGenerator.extractUserIdFromToken(token);
+            Optional<Block> blockOptional = getBlockModel(id);
 
-            blockService.validationExistsbook(blockOptional);
-            verifyUser(blockOptional, userId);
+            validateExistsBook(blockOptional);
+            verifyRelationUserWithAllocation(blockOptional, userId);
 
-            vacancieService.deleteAllVacancies(blockOptional.get().getId());
-            blockService.deleteBlock(blockOptional.get().getId());
+            deleteAllVacancies(blockOptional.get().getId());
+            deleteBlock(blockOptional.get().getId());
 
             return ResponseEntity.status(HttpStatus.OK).body(null);
         } catch(BusinessException err) {
@@ -132,25 +142,78 @@ public class BlockController {
         }
     }
 
-    private Block.Builder createBlockModel(Block block, Integer totalVacancies, User user) throws BusinessException {
+    private String extractTokenFromAuthorizationHeader(String authorizationHeader) {
+        return tokenGenerator.extractTokenFromAuthorizationHeader(authorizationHeader);
+    }
+
+    private Integer extractUserIdFromToken(String token) {
+        return tokenGenerator.extractUserIdFromToken(token);
+    }
+
+    private void validateExistsBook(Optional<Block> blockOptional) throws BusinessException {
+        blockService.validationExistsblock(blockOptional);
+    }
+
+    private void existsByBlockNameAndIdNot(Block block,
+                                           Optional<Block> blockOptional,
+                                           Integer userId) throws BusinessException {
+        blockService.existsByBlockNameAndIdNot(block.getBlockName(), blockOptional.get().getId(), userId);
+    }
+
+    private void existsByBlockName(Block block,
+                                   Integer userId) throws BusinessException {
+        blockService.existsByBlockName(block.getBlockName(), userId);
+    }
+
+    private void verifyRelationUserWithAllocation(Optional<Block> block,
+                                                  Integer userId) {
+        blockService.verifyRelationUserWithBlock(block, userId);
+    }
+
+    private Optional<Block> getBlockModel(UUID id) {
+        return blockService.findById(id);
+    }
+
+    private List<Block> getBlocksModels(Integer userId) {
+        return blockService.findAll(userId);
+    }
+
+    private void rearrangeVacanciesInBlocks(List<Block> blocks) {
+        for (Block block : blocks) {
+            rearrangeVacancies(block);
+        }
+    }
+
+    private void rearrangeVacancies(Block block) {
+        List<Vacancie> vacancies = block.getVacancieList();
+        vacancies.sort(Comparator.comparingInt(Vacancie::getVacancieNumber));
+    }
+
+    private Block.Builder setVacanceListInBlockBuilder(Block.Builder blockBuilder,
+                                                       Integer userId) {
+        return blockBuilder.setVacancieList(vacancieService.getVacancies(userId));
+    }
+
+    private Block.Builder createBlockModel(Block block,
+                                           Integer totalVacancies,
+                                           User user) throws BusinessException {
         try {
             return new Block.Builder()
                     .setBlockName(block.getBlockName())
                     .setTotalVacancies(totalVacancies)
                     .setUser(user);
         } catch(BusinessException e) {
-            System.out.println("tem problema aqui " + e);
             throw new BusinessException(e.getMessage());
         }
     }
 
-    private void createVacanciesForBlock(Block blockBuilder, int totalVacancies, User user) {
-        Block savedBlock = blockService.save(blockBuilder);
-
+    private void createVacanciesForBlock(Block blockBuilder,
+                                         int totalVacancies,
+                                         User user) {
         for (int i = 0; i < totalVacancies; i++) {
             Vacancie vacancyBuilder = new Vacancie.Builder()
                     .setVacancieNumber(i + 1)
-                    .setBlock(savedBlock)
+                    .setBlock(blockBuilder)
                     .setUser(user)
                     .build();
 
@@ -158,7 +221,8 @@ public class BlockController {
         }
     }
 
-    private Block.Builder updateBlockModel(Optional<Block> blockOptional, Block block) {
+    private Block.Builder updateBlockModel(Optional<Block> blockOptional,
+                                           Block block) {
         Block existingBlock = blockOptional.get();
 
         return new Block.Builder()
@@ -169,7 +233,8 @@ public class BlockController {
                 .setVacancieList(existingBlock.getVacancieList());
     }
 
-    private void updateVacancyNumbers(Block.Builder blockBuilder, int totalVacancies) throws BusinessException {
+    private void updateVacancyNumbers(Block.Builder blockBuilder,
+                                      int totalVacancies) throws BusinessException {
         List<Vacancie> vacancies = blockBuilder.build().getVacancieList();
 
         updateExistingVacancies(vacancies, totalVacancies);
@@ -177,7 +242,8 @@ public class BlockController {
         deleteExcessVacancies(vacancies, totalVacancies);
     }
 
-    private void updateExistingVacancies(List<Vacancie> vacancies, int totalVacancies) throws BusinessException {
+    private void updateExistingVacancies(List<Vacancie> vacancies,
+                                         int totalVacancies) throws BusinessException {
         for (int i = 0; i < Math.min(vacancies.size(), totalVacancies); i++) {
             Vacancie vacancy = vacancies.get(i);
             int newVacancyNumber = i + 1;
@@ -189,7 +255,9 @@ public class BlockController {
         }
     }
 
-    private void createNewVacancies(Block.Builder blockBuilder, List<Vacancie> vacancies, int totalVacancies) throws BusinessException {
+    private void createNewVacancies(Block.Builder blockBuilder,
+                                    List<Vacancie> vacancies,
+                                    int totalVacancies) throws BusinessException {
         for (int i = vacancies.size(); i < totalVacancies; i++) {
             Vacancie vacancy = new Vacancie.Builder()
                     .setVacancieNumber(i + 1)
@@ -197,14 +265,12 @@ public class BlockController {
                     .setUser(blockBuilder.getUser())
                     .build();
 
-            System.out.println("o erro ta aqui");
-
             vacancieService.createVacancy(vacancy);
-            System.out.println("mas eu passei aqui");
         }
     }
 
-    private void deleteExcessVacancies(List<Vacancie> vacancies, int totalVacancies) throws BusinessException {
+    private void deleteExcessVacancies(List<Vacancie> vacancies,
+                                       int totalVacancies) throws BusinessException {
         if (vacancies.size() > totalVacancies) {
             for (int i = vacancies.size() - 1; i >= totalVacancies; i--) {
                 Vacancie vacancy = vacancies.get(i);
@@ -213,22 +279,15 @@ public class BlockController {
         }
     }
 
-    private Block.Builder setVacanceListInBlockBuilder(Block.Builder blockBuilder, Integer userId) {
-        return blockBuilder.setVacancieList(vacancieService.getVacancies(userId));
+    private Block saveDataBlock(Block initializeInstanceBlock) {
+        return blockService.save(initializeInstanceBlock);
     }
 
-    private Block initializeInstanceBlock(Block.Builder blockBuilder) {
-        return blockBuilder.build();
+    private void deleteAllVacancies(UUID id) {
+        vacancieService.deleteAllVacancies(id);
     }
 
-    private void verifyUser(Optional<Block> block, Integer userId) throws BusinessException {
-        if(block.orElse(null).getUser().getId() != userId) {
-            throw new BusinessException("This block does not exist");
-        }
-    }
-
-    private User getUserModel(Integer userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    private void deleteBlock(UUID id) {
+        blockService.deleteBlock(id);
     }
 }

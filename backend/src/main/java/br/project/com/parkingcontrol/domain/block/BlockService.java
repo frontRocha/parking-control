@@ -1,6 +1,7 @@
 package br.project.com.parkingcontrol.domain.block;
 
 import br.project.com.parkingcontrol.businessException.BusinessException;
+import br.project.com.parkingcontrol.domain.allocation.Allocation;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -34,15 +35,15 @@ public class BlockService {
         blockRepository.deleteById(blockId);
     }
 
-    public void existsByBlockName(char blockName, Integer userId) throws BusinessException {
-        validationBookName(blockName, userId);
+    public void existsByBlockName(String blockName, Integer userId) throws BusinessException {
+        validationBlockName(blockName, userId);
     }
 
-    public void existsByBlockNameAndIdNot(char blockName, UUID id, Integer userId) throws BusinessException {
-        validationBookNameAndIdNot(blockName, id, userId);
+    public void existsByBlockNameAndIdNot(String blockName, UUID id, Integer userId) throws BusinessException {
+        validationBlockNameAndIdNot(blockName, id, userId);
     }
 
-    private void validationBookName(char blockName, Integer userId) throws BusinessException {
+    private void validationBlockName(String blockName, Integer userId) throws BusinessException {
         int count = blockRepository.countByBlockNameAndUserId(blockName, userId);
 
         if (count > 0) {
@@ -50,7 +51,7 @@ public class BlockService {
         }
     }
 
-    private void validationBookNameAndIdNot(char blockName, UUID id, Integer userId) throws BusinessException {
+    private void validationBlockNameAndIdNot(String blockName, UUID id, Integer userId) throws BusinessException {
         int count = blockRepository.countByBlockNameAndIdNotAndUserId(blockName, id, userId);
 
         if (count > 0) {
@@ -58,9 +59,15 @@ public class BlockService {
         }
     }
 
-    public void validationExistsbook(Optional<Block> bookModelOptional) throws BusinessException {
+    public void validationExistsblock(Optional<Block> bookModelOptional) throws BusinessException {
         if(!bookModelOptional.isPresent()) {
             throw new BusinessException("This block does not exist");
+        }
+    }
+
+    public void verifyRelationUserWithBlock(Optional<Block> allocation, Integer userId) throws BusinessException {
+        if(allocation.orElse(null).getUser().getId() != userId) {
+            throw new BusinessException("This allocation does not exist");
         }
     }
 }

@@ -30,16 +30,12 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Block> blockList;
-
     @OneToMany(mappedBy = "user")
     private List<Allocation> allocationList;
-
     @OneToMany(mappedBy = "user")
     private List<Customer> customerList;
-
     @OneToMany(mappedBy = "user")
     private List<History> historyList;
-
     @OneToMany(mappedBy = "user")
     private List<Vacancie> vacancieList;
 
@@ -112,23 +108,18 @@ public class User {
             return this;
         }
 
-        public Builder setPassoword(String password) {
+        public Builder setPassword(String password) {
             this.password = password;
             return this;
         }
 
-        public Builder setResgistrationDate(LocalDateTime registrationDate) {
+        public Builder setRegistrationDate(LocalDateTime registrationDate) {
             this.registrationDate = registrationDate;
             return this;
         }
 
         public Builder setBlockList(List<Block> blockList)  {
             this.blockList = blockList;
-            return this;
-        }
-
-        public Builder setRegistrationDate(LocalDateTime registrationDate) {
-            this.registrationDate = registrationDate;
             return this;
         }
 

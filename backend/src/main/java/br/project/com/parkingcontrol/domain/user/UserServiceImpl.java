@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserDetailsService {
 
     private void verifyUserEmpty(Optional<User> user, String username) throws UsernameNotFoundException {
         if (user.isEmpty()) {
-            throw new UsernameNotFoundException("Usuário [" + username + "] não encontrado");
+            throw new UsernameNotFoundException("User [" + username + "] is not found");
         }
     }
 
@@ -40,7 +40,12 @@ public class UserServiceImpl implements UserDetailsService {
 
     private void validationBookName(String login) throws BusinessException {
         if(repository.existsByLogin(login)) {
-            throw new BusinessException("The user: " + login + " is already in use");
+            throw new BusinessException("The email: " + login + " is already in use");
         }
+    }
+
+    public User getUserModel(Integer userId) {
+        return repository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 }
