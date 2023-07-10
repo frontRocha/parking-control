@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "ALLOCATION")
+@Entity(name = "TB_ALLOCATION")
 public class Allocation {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -26,9 +26,9 @@ public class Allocation {
     private LocalDateTime departureTime;
     @Column(nullable = false, unique = false)
     private String customerName;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = false)
     private String customerLastName;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = false)
     private String plateCar;
     @Column(nullable = false, unique = false)
     private Integer vacancieName;

@@ -1,7 +1,6 @@
 package br.project.com.parkingcontrol.domain.block;
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
-import br.project.com.parkingcontrol.domain.allocation.Allocation;
+import br.project.com.parkingcontrol.util.BusinessException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -36,25 +35,13 @@ public class BlockService {
     }
 
     public void existsByBlockName(String blockName, Integer userId) throws BusinessException {
-        validationBlockName(blockName, userId);
-    }
-
-    public void existsByBlockNameAndIdNot(String blockName, UUID id, Integer userId) throws BusinessException {
-        validationBlockNameAndIdNot(blockName, id, userId);
-    }
-
-    private void validationBlockName(String blockName, Integer userId) throws BusinessException {
-        int count = blockRepository.countByBlockNameAndUserId(blockName, userId);
-
-        if (count > 0) {
+        if (blockRepository.existsByBlockNameAndUserId(blockName, userId)) {
             throw new BusinessException("The block: " + blockName + " is already registered for the user");
         }
     }
 
-    private void validationBlockNameAndIdNot(String blockName, UUID id, Integer userId) throws BusinessException {
-        int count = blockRepository.countByBlockNameAndIdNotAndUserId(blockName, id, userId);
-
-        if (count > 0) {
+    public void existsByBlockNameAndIdNot(String blockName, UUID id, Integer userId) throws BusinessException {
+        if (blockRepository.existsByBlockNameAndIdNotAndUserId(blockName, id, userId)) {
             throw new BusinessException("The block: " + blockName + " is already registered for the user");
         }
     }

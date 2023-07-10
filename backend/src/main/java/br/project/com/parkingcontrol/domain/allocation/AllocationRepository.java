@@ -8,5 +8,7 @@ import java.util.UUID;
 
 @Repository
 public interface AllocationRepository extends JpaRepository<Allocation, UUID> {
+
+
     List<Allocation> findAllByUserId(Integer userId);
 }

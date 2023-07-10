@@ -1,17 +1,15 @@
 package br.project.com.parkingcontrol.security.filter;
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
+import br.project.com.parkingcontrol.util.*;
 import br.project.com.parkingcontrol.data.UserDetail;
-import br.project.com.parkingcontrol.util.authenticationResponse.AuthenticationResponse;
-import br.project.com.parkingcontrol.util.errorResponse.ErrorResponse;
 import br.project.com.parkingcontrol.domain.user.User;
-import br.project.com.parkingcontrol.util.TokenGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -63,7 +61,7 @@ public class JWTAuthenticate extends UsernamePasswordAuthenticationFilter {
                                               HttpServletResponse response,
                                               AuthenticationException failed) throws IOException, ServletException {
 
-        ErrorResponse errorResponse = BusinessException.setErrorResponse("user not found", HttpStatus.NOT_FOUND.value());
+        ResponseData errorResponse = ResponseData.generateUnsuccessfulResponse("user not found");
         writeJsonResponse(response, errorResponse);
     }
 

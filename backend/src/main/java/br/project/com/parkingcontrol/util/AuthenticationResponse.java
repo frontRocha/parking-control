@@ -1,4 +1,4 @@
-package br.project.com.parkingcontrol.util.authenticationResponse;
+package br.project.com.parkingcontrol.util;
 
 import java.util.Map;
 

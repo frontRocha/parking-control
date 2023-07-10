@@ -1,11 +1,13 @@
 package br.project.com.parkingcontrol.web.user;
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
-import br.project.com.parkingcontrol.util.authenticationResponse.AuthenticationResponse;
+import br.project.com.parkingcontrol.util.BusinessException;
+import br.project.com.parkingcontrol.util.AuthenticationResponse;
 import br.project.com.parkingcontrol.domain.user.User;
 import br.project.com.parkingcontrol.domain.user.UserRepository;
 import br.project.com.parkingcontrol.domain.user.UserServiceImpl;
+import br.project.com.parkingcontrol.util.ResponseData;
 import br.project.com.parkingcontrol.util.TokenGenerator;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,7 +42,7 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<Object> signup(@RequestBody User user) {
         try {
-            existsByLoginUser(user);
+            existsByLoginUser(user.getLogin());
             setUserPassword(user);
 
             LocalDateTime registrationDate = generateDateTime();
@@ -55,10 +57,39 @@ public class UserController {
             defineUserLoginInUserData(user.getLogin());
             AuthenticationResponse response = setUserDataInAuthenticationResponse(token);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(response));
         } catch(BusinessException err) {
-            return BusinessException.handleBusinessException(err, HttpStatus.UNAUTHORIZED.value());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
+    }
+
+    @PatchMapping("/edit_price")
+    public ResponseEntity<Object> editUser(@RequestBody @Valid User user,
+                                           @RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            String token = extractTokenFromAuthorizationHeader(authorizationHeader);
+            Integer userId = extractUserIdFromToken(token);
+
+            User userModel = getUserModel(userId);
+
+            User updateUser = createUpdateUserModel(userId, user, userModel);
+
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(updateUser));
+        } catch(Exception err) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
+        }
+    }
+
+    private String extractTokenFromAuthorizationHeader(String authorizationHeader) {
+        return tokenGenerator.extractTokenFromAuthorizationHeader(authorizationHeader);
+    }
+
+    private Integer extractUserIdFromToken(String token) {
+        return tokenGenerator.extractUserIdFromToken(token);
+    }
+
+    private User getUserModel(Integer userId) {
+        return userServiceImpl.getUserModel(userId);
     }
 
     private String generateTokenAuthentication(User user,
@@ -70,11 +101,24 @@ public class UserController {
         return LocalDateTime.now(ZoneId.of("UTC"));
     }
 
-    private void existsByLoginUser(User user) throws BusinessException {
-        userServiceImpl.existsByEmail(user.getLogin());
+    private void existsByLoginUser(String login) throws BusinessException {
+        userServiceImpl.existsByEmail(login);
     }
 
-    private User createUserModel(User user, LocalDateTime registrationDate) {
+    private User createUpdateUserModel(Integer userId,
+                                       User user,
+                                       User userModel) {
+        return new User.Builder()
+                .setId(userId)
+                .setLogin(userModel.getLogin())
+                .setPricePerHour(user.getPricePerHour())
+                .setPassword(userModel.getPassword())
+                .setRegistrationDate(userModel.getRegistrationDate())
+                .build();
+    }
+
+    private User createUserModel(User user,
+                                 LocalDateTime registrationDate) {
         return new User.Builder()
                 .setLogin(user.getLogin())
                 .setPassword(user.getPassword())
@@ -82,7 +126,8 @@ public class UserController {
                 .build();
     }
 
-    private void setRegistrationDate(LocalDateTime registrationDate, User user) {
+    private void setRegistrationDate(LocalDateTime registrationDate,
+                                     User user) {
         user.setRegistrationDate(registrationDate);
     }
 
@@ -98,14 +143,14 @@ public class UserController {
         user.setPassword(encoder.encode(user.getPassword()));
     }
 
+    private void saveUser(User userModel) {
+        ResponseEntity.ok(userServiceImpl.saveUser(userModel));
+    }
+
     private AuthenticationResponse setUserDataInAuthenticationResponse(String token) {
         return new AuthenticationResponse.Builder()
                 .setToken(token)
                 .setData(userData)
                 .build();
-    }
-
-    private void saveUser(User userModel) {
-        ResponseEntity.ok(repository.save(userModel));
     }
 }

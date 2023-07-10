@@ -5,6 +5,8 @@ import br.project.com.parkingcontrol.domain.block.Block;
 import br.project.com.parkingcontrol.domain.customer.Customer;
 import br.project.com.parkingcontrol.domain.history.History;
 import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +18,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name="USER")
+@Entity(name="TB_USER")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,17 +27,24 @@ public class User {
     private String login;
     @Column(unique = false, nullable = false)
     private String password;
+    @Column(unique = false, nullable = true)
+    private double pricePerHour;
     @Column(nullable = false)
     private LocalDateTime registrationDate;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Block> blockList;
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Allocation> allocationList;
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Customer> customerList;
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<History> historyList;
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Vacancie> vacancieList;
 
@@ -51,34 +60,20 @@ public class User {
         return password;
     }
 
-    public LocalDateTime getRegistrationDate() {
-        return registrationDate;
+    public double getPricePerHour() {
+        return pricePerHour;
     }
 
-    public List<Block> getBlockList() {
-        return blockList;
-    }
-
-    public List<Allocation> getAllocationList() {
-        return allocationList;
-    }
-
-    public List<Customer> getCustomerList() {
-        return customerList;
-    }
-
-    public List<History> getHistoryList() {
-        return historyList;
-    }
-
-    public List<Vacancie> getVacancieList() {
-        return vacancieList;
+    private static void fieldValidation(String login, String password) {
+        Preconditions.checkArgument(login.length() > 1, "email cannot be null");
+        Preconditions.checkArgument(password.length() > 1, "password cannot be null");
     }
 
     public static class Builder {
         private Integer id;
         private String login;
         private String password;
+        private double pricePerHour;
         private LocalDateTime registrationDate;
         private List<Block> blockList;
         private List<Allocation> allocationList;
@@ -91,6 +86,7 @@ public class User {
             this.registrationDate = null;
             this.login = null;
             this.password = null;
+            this.pricePerHour = 0;
             this.blockList = null;
             this.allocationList = null;
             this.customerList = null;
@@ -110,6 +106,11 @@ public class User {
 
         public Builder setPassword(String password) {
             this.password = password;
+            return this;
+        }
+
+        public Builder setPricePerHour(double pricePerHour) {
+            this.pricePerHour = pricePerHour;
             return this;
         }
 
@@ -155,6 +156,10 @@ public class User {
             return password;
         }
 
+        public double getPricePerHour() {
+            return pricePerHour;
+        }
+
         public LocalDateTime getRegistrationDate() {
             return registrationDate;
         }
@@ -164,7 +169,8 @@ public class User {
         }
 
         public User build() {
-            return new User(id, login, password, registrationDate, blockList, allocationList, customerList, historyList, vacancieList);
+            fieldValidation(login, password);
+            return new User(id, login, password, pricePerHour, registrationDate, blockList, allocationList, customerList, historyList, vacancieList);
         }
     }
 }

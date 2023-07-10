@@ -1,10 +1,9 @@
 package br.project.com.parkingcontrol.web.history;
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
-import br.project.com.parkingcontrol.domain.allocation.Allocation;
-import br.project.com.parkingcontrol.domain.block.Block;
+import br.project.com.parkingcontrol.util.BusinessException;
 import br.project.com.parkingcontrol.domain.history.History;
 import br.project.com.parkingcontrol.domain.history.HistoryService;
+import br.project.com.parkingcontrol.util.ResponseData;
 import br.project.com.parkingcontrol.util.TokenGenerator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,15 +27,15 @@ public class HistoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<History>> getAllHistory(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<ResponseData> getAllHistory(@RequestHeader("Authorization") String authorizationHeader) {
         String token = extractTokenFromAuthorizationHeader(authorizationHeader);
         Integer userId = extractUserIdFromToken(token);
 
-        return ResponseEntity.status(HttpStatus.OK).body(historyService.findAll(userId));
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(historyService.findAll(userId)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getOneHistory(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<ResponseData> getOneHistory(@RequestHeader("Authorization") String authorizationHeader,
                                                 @PathVariable(value = "id") UUID id) {
         try {
             String token = extractTokenFromAuthorizationHeader(authorizationHeader);
@@ -46,15 +45,14 @@ public class HistoryController {
             validateExistsHistory(historyOptional);
             verifyRelationUserWithHistory(historyOptional, userId);
 
-            return ResponseEntity.status(HttpStatus.OK).body(historyOptional.get());
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(historyOptional.get()));
         } catch(Exception err) {
-            BusinessException businessException = new BusinessException(err.getMessage());
-            return BusinessException.handleBusinessException(businessException, HttpStatus.CONFLICT.value());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteHistory(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<ResponseData> deleteHistory(@RequestHeader("Authorization") String authorizationHeader,
                                                 @PathVariable(value = "id") UUID id) {
         try {
             String token = extractTokenFromAuthorizationHeader(authorizationHeader);
@@ -66,10 +64,9 @@ public class HistoryController {
 
             deleteHistoryData(id);
 
-            return ResponseEntity.status(HttpStatus.OK).body(null);
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(historyOptional.get()));
         } catch(Exception err) {
-            BusinessException businessException = new BusinessException(err.getMessage());
-            return BusinessException.handleBusinessException(businessException, HttpStatus.CONFLICT.value());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 

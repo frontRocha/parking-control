@@ -1,6 +1,6 @@
 package br.project.com.parkingcontrol.domain.user;
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
+import br.project.com.parkingcontrol.util.BusinessException;
 import br.project.com.parkingcontrol.data.UserDetail;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,6 +28,11 @@ public class UserServiceImpl implements UserDetailsService {
         return new UserDetail(user);
     }
 
+    @Transactional
+    public User saveUser(User user) {
+        return repository.save(user);
+    }
+
     private void verifyUserEmpty(Optional<User> user, String username) throws UsernameNotFoundException {
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User [" + username + "] is not found");
@@ -35,10 +40,10 @@ public class UserServiceImpl implements UserDetailsService {
     }
 
     public void existsByEmail(String login) throws BusinessException {
-        validationBookName(login);
+        validationLogin(login);
     }
 
-    private void validationBookName(String login) throws BusinessException {
+    private void validationLogin(String login) throws BusinessException {
         if(repository.existsByLogin(login)) {
             throw new BusinessException("The email: " + login + " is already in use");
         }

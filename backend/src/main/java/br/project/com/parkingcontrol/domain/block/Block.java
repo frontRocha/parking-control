@@ -16,7 +16,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "BLOCK")
+@Entity(name = "TB_BLOCK")
 public class Block {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

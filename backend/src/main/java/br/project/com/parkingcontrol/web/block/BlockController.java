@@ -1,11 +1,12 @@
 package br.project.com.parkingcontrol.web.block;
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
+import br.project.com.parkingcontrol.util.BusinessException;
 import br.project.com.parkingcontrol.domain.block.Block;
 import br.project.com.parkingcontrol.domain.block.BlockService;
 import br.project.com.parkingcontrol.domain.user.User;
 import br.project.com.parkingcontrol.domain.user.UserServiceImpl;
 import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
+import br.project.com.parkingcontrol.util.ResponseData;
 import br.project.com.parkingcontrol.util.TokenGenerator;
 import br.project.com.parkingcontrol.domain.user.UserRepository;
 import br.project.com.parkingcontrol.domain.vacancie.VacancieService;
@@ -41,19 +42,19 @@ public class BlockController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Block>> getAllBlocks(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<ResponseData> getAllBlocks(@RequestHeader("Authorization") String authorizationHeader) {
         String token = extractTokenFromAuthorizationHeader(authorizationHeader);
         Integer userId = extractUserIdFromToken(token);
 
         List<Block> blocks = getBlocksModels(userId);
         rearrangeVacanciesInBlocks(blocks);
 
-        return ResponseEntity.status(HttpStatus.OK).body(blocks);
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(blocks));
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getOneBlock(@PathVariable(value = "id") UUID id,
+    public ResponseEntity<ResponseData> getOneBlock(@PathVariable(value = "id") UUID id,
                                               @RequestHeader("Authorization") String authorizationHeader) {
         try {
             String token = extractTokenFromAuthorizationHeader(authorizationHeader);
@@ -67,14 +68,14 @@ public class BlockController {
             Optional<Block> block = getBlockModel(id);
             rearrangeVacancies(block.get());
 
-            return ResponseEntity.status(HttpStatus.OK).body(block.get());
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(block.get()));
         } catch(BusinessException err) {
-            return BusinessException.handleBusinessException(err, HttpStatus.CONFLICT.value());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 
     @PostMapping
-    public ResponseEntity<Object> createBlock(@RequestBody @Valid Block block,
+    public ResponseEntity<ResponseData> createBlock(@RequestBody @Valid Block block,
                                               @RequestHeader("Authorization") String authorizationHeader) {
         try {
             String token = extractTokenFromAuthorizationHeader(authorizationHeader);
@@ -89,10 +90,9 @@ public class BlockController {
 
             createVacanciesForBlock(blockBuild, block.getTotalVacancies(), user);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(blockBuild);
-        } catch (Exception ex) {
-            BusinessException businessException = new BusinessException(ex.getMessage());
-            return BusinessException.handleBusinessException(businessException, HttpStatus.UNAUTHORIZED.value());
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(blockBuild));
+        } catch (Exception err) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 
@@ -114,10 +114,9 @@ public class BlockController {
             updateVacancyNumbers(blockBuilder, block.getTotalVacancies());
             setVacanceListInBlockBuilder(blockBuilder, userId);
 
-            return ResponseEntity.status(HttpStatus.OK).body(blockService.save(blockBuilder.build()));
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(blockService.save(blockBuilder.build())));
         } catch(Exception err) {
-            BusinessException businessException = new BusinessException(err.getMessage());
-            return BusinessException.handleBusinessException(businessException, HttpStatus.UNAUTHORIZED.value());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 
@@ -136,9 +135,9 @@ public class BlockController {
             deleteAllVacancies(blockOptional.get().getId());
             deleteBlock(blockOptional.get().getId());
 
-            return ResponseEntity.status(HttpStatus.OK).body(null);
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(blockOptional));
         } catch(BusinessException err) {
-            return BusinessException.handleBusinessException(err, HttpStatus.UNAUTHORIZED.value());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 

@@ -1,12 +1,11 @@
 package br.project.com.parkingcontrol.web.allocation;
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
+import br.project.com.parkingcontrol.util.BusinessException;
 import br.project.com.parkingcontrol.domain.allocation.Allocation;
 import br.project.com.parkingcontrol.domain.allocation.AllocationFinishedResponse;
 import br.project.com.parkingcontrol.domain.allocation.AllocationService;
 import br.project.com.parkingcontrol.domain.block.BlockService;
 import br.project.com.parkingcontrol.domain.customer.Customer;
-import br.project.com.parkingcontrol.domain.customer.CustomerRepository;
 import br.project.com.parkingcontrol.domain.customer.CustomerService;
 import br.project.com.parkingcontrol.domain.history.History;
 import br.project.com.parkingcontrol.domain.history.HistoryService;
@@ -15,6 +14,7 @@ import br.project.com.parkingcontrol.domain.user.UserRepository;
 import br.project.com.parkingcontrol.domain.user.UserServiceImpl;
 import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
 import br.project.com.parkingcontrol.domain.vacancie.VacancieService;
+import br.project.com.parkingcontrol.util.ResponseData;
 import br.project.com.parkingcontrol.util.TokenGenerator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,15 +58,15 @@ public class AllocationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Allocation>> getAllAllocation(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<ResponseData> getAllAllocation(@RequestHeader("Authorization") String authorizationHeader) {
         String token = extractTokenFromAuthorizationHeader(authorizationHeader);
         Integer userId = extractUserIdFromToken(token);
 
-        return ResponseEntity.status(HttpStatus.OK).body(allocationService.findAll(userId));
+        return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(allocationService.findAll(userId)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getOneAllocation(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<ResponseData> getOneAllocation(@RequestHeader("Authorization") String authorizationHeader,
                                                    @PathVariable(value = "id") UUID id) {
         try {
             String token = extractTokenFromAuthorizationHeader(authorizationHeader);
@@ -76,15 +76,14 @@ public class AllocationController {
             validateExistsAllocation(allocationOptional);
             verifyRelationUserWithAllocation(allocationOptional, userId);
 
-            return ResponseEntity.status(HttpStatus.OK).body(allocationOptional.get());
-        } catch(Exception ex) {
-            BusinessException businessException = new BusinessException(ex.getMessage());
-            return BusinessException.handleBusinessException(businessException, HttpStatus.CONFLICT.value());
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(allocationOptional.get()));
+        } catch(Exception err) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 
     @PostMapping("/create/{id}")
-    public ResponseEntity<Object> createAllocation(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<ResponseData> createAllocation(@RequestHeader("Authorization") String authorizationHeader,
                                                    @RequestBody Customer customer,
                                                    @PathVariable(value = "id") UUID id) {
         try {
@@ -106,15 +105,14 @@ public class AllocationController {
 
             Allocation allocationModel = createAllocationModel(savedCustomer, user, vacancie.get());
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(allocationService.createAllocation(allocationModel));
-        } catch(Exception ex) {
-            BusinessException businessException = new BusinessException(ex.getMessage());
-            return BusinessException.handleBusinessException(businessException, HttpStatus.CONFLICT.value());
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(allocationService.createAllocation(allocationModel)));
+        } catch(Exception err) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 
     @DeleteMapping("/finish/{id}")
-    public ResponseEntity<Object> deleteAllocation(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<ResponseData> deleteAllocation(@RequestHeader("Authorization") String authorizationHeader,
                                                    @PathVariable(value = "id") UUID id) {
         try {
             String token = extractTokenFromAuthorizationHeader(authorizationHeader);
@@ -136,30 +134,38 @@ public class AllocationController {
             deleteCustomer(allocation.get().getCustomer().getId());
             saveDataInHistory(historyModel);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(response));
         } catch(BusinessException err) {
-            return BusinessException.handleBusinessException(err, HttpStatus.CONFLICT.value());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
 
-//    @PutMapping("/{id}")
-//    public ResponseEntity<Object> editAllocation(@RequestHeader("Authorization") String authorizationHeader,
-//                                                 @RequestBody Allocation newAllocation,
-//                                                 @PathVariable(value = "id") UUID id) {
-//        try {
-//            String token = extractTokenFromAuthorizationHeader(authorizationHeader);
-//            Integer userId = extractUserIdFromToken(token);
-//
-//            Optional<Allocation> allocationOptional = getAllocationModel(id);
-//            validateExistsAllocation(allocationOptional);
-//            verifyRelationUserWithAllocation(allocationOptional, userId);
-//
-//            return ResponseEntity.status(HttpStatus.OK).body(allocationService.createAllocation(a));
-//        } catch(Exception ex) {
-//            BusinessException businessException = new BusinessException(ex.getMessage());
-//            return BusinessException.handleBusinessException(businessException, HttpStatus.CONFLICT.value());
-//        }
-//    }
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseData> editAllocation(@RequestHeader("Authorization") String authorizationHeader,
+                                                 @RequestBody Allocation newAllocation,
+                                                 @PathVariable(value = "id") UUID id) {
+        try {
+            String token = extractTokenFromAuthorizationHeader(authorizationHeader);
+            Integer userId = extractUserIdFromToken(token);
+
+            Optional<Allocation> allocationOptional = getAllocationModel(id);
+            validateExistsAllocation(allocationOptional);
+            verifyRelationUserWithAllocation(allocationOptional, userId);
+
+            existsByCustomerNameAndIdNot(newAllocation, allocationOptional, userId);
+            existsByPlateCarAndUserId(newAllocation, allocationOptional, userId);
+
+            Customer customerModel = createUpdateCustomerModel(newAllocation, allocationOptional);
+            Customer updatedCustomerModel = saveUpdatedCustomer(customerModel);
+
+            Allocation allocationModel = createUpdateAllocation(allocationOptional, updatedCustomerModel);
+            Allocation updatedAllocationModel = saveUpdateAllocation(allocationModel);
+
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(updatedAllocationModel));
+        } catch(Exception err) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
+        }
+    }
 
     private String extractTokenFromAuthorizationHeader(String authorizationHeader) {
         return tokenGenerator.extractTokenFromAuthorizationHeader(authorizationHeader);
@@ -203,6 +209,18 @@ public class AllocationController {
         vacancieService.verifyRelationUserWithVacancy(userId, vacancie);
     }
 
+    private void existsByCustomerNameAndIdNot(Allocation newAllocation,
+                                              Optional<Allocation> allocationOptional,
+                                              Integer userId) throws BusinessException {
+        customerService.existsByCustomerNameAndIdNot(newAllocation.getCustomerName(), newAllocation.getCustomerLastName(), allocationOptional.get().getCustomer().getId(), userId);
+    }
+
+    private void existsByPlateCarAndUserId(Allocation newAllocation,
+                                           Optional<Allocation> allocationOptional,
+                                           Integer userId) throws BusinessException {
+        customerService.existsByPlateCarAndUserId(newAllocation.getPlateCar(), allocationOptional.get().getCustomer().getId(), userId);
+    }
+
     public void createVacancy(Vacancie status) {
         vacancieService.createVacancy(status);
     }
@@ -217,6 +235,14 @@ public class AllocationController {
 
     private void saveDataInHistory(History historyModel) {
         historyService.saveDataInHistory(historyModel);
+    }
+
+    private Customer saveUpdatedCustomer(Customer customerModel) {
+        return customerService.createCustomer(customerModel);
+    }
+
+    private Allocation saveUpdateAllocation(Allocation allocationModel) {
+        return allocationService.createAllocation(allocationModel);
     }
 
     private Customer createCustomer(Customer customerModel) {
@@ -266,22 +292,46 @@ public class AllocationController {
 
     private Allocation createAllocationModel(Customer customer,
                                              User user,
-                                             Vacancie vacancie) throws BusinessException {
-        try {
-            return new Allocation.Builder()
-                    .setArrivalTime(LocalDateTime.now(ZoneId.of("UTC")))
-                    .setCustomer(customer)
-                    .setUser(user)
-                    .setPlateCar(customer.getPlateCar())
-                    .setCustomerName(customer.getName())
-                    .setCustomerLastName(customer.getLastName())
-                    .setVacancieName(vacancie.getVacancieNumber())
-                    .setVacancie(vacancie)
-                    .setBlockName(vacancie.getBlock().getBlockName())
-                    .build();
-        } catch(BusinessException e) {
-            throw new BusinessException(e.getMessage());
-        }
+                                             Vacancie vacancie) {
+        return new Allocation.Builder()
+                .setArrivalTime(LocalDateTime.now(ZoneId.of("UTC")))
+                .setCustomer(customer)
+                .setUser(user)
+                .setPlateCar(customer.getPlateCar())
+                .setCustomerName(customer.getName())
+                .setCustomerLastName(customer.getLastName())
+                .setVacancieName(vacancie.getVacancieNumber())
+                .setVacancie(vacancie)
+                .setBlockName(vacancie.getBlock().getBlockName())
+                .build();
+    }
+
+    private Customer createUpdateCustomerModel(Allocation newAllocation,
+                                               Optional<Allocation> allocationOptional) {
+        return new Customer.Builder()
+                .setId(allocationOptional.get().getCustomer().getId())
+                .setName(newAllocation.getCustomerName())
+                .setLastName(newAllocation.getCustomerLastName())
+                .setPlateCar(newAllocation.getPlateCar())
+                .setUser(allocationOptional.get().getUser())
+                .setAllocation(allocationOptional.get())
+                .build();
+    }
+
+    private Allocation createUpdateAllocation(Optional<Allocation> allocationOptional,
+                                              Customer updatedCustomerModel) {
+        return new Allocation.Builder()
+                .setId(allocationOptional.get().getId())
+                .setBlockName(allocationOptional.get().getBlockName())
+                .setVacancieName(allocationOptional.get().getVacancie().getVacancieNumber())
+                .setCustomerName(updatedCustomerModel.getName())
+                .setCustomerLastName(updatedCustomerModel.getLastName())
+                .setPlateCar(updatedCustomerModel.getPlateCar())
+                .setArrivalTime(allocationOptional.get().getArrivalTime())
+                .setCustomer(updatedCustomerModel)
+                .setUser(allocationOptional.get().getUser())
+                .setVacancie(allocationOptional.get().getVacancie())
+                .build();
     }
 
     private Vacancie createUpdatedVacancie(Vacancie vacancie,

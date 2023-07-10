@@ -1,7 +1,6 @@
 package br.project.com.parkingcontrol.domain.allocation;
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
-import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
+import br.project.com.parkingcontrol.util.BusinessException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

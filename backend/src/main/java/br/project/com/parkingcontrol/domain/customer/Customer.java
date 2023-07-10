@@ -13,16 +13,16 @@ import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
+@Entity(name = "TB_CUSTOMER")
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     @Column(nullable = false, unique = false)
     private String name;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = false)
     private String lastName;
-    @Column(nullable = false, unique = true, length = 8)
+    @Column(nullable = false, unique = false, length = 8)
     private String plateCar;
 
     @JsonIgnore

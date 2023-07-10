@@ -1,7 +1,6 @@
 package br.project.com.parkingcontrol.security;
 
-import br.project.com.parkingcontrol.util.authenticationResponse.AuthenticationResponse;
-import br.project.com.parkingcontrol.util.errorResponse.ErrorResponse;
+import br.project.com.parkingcontrol.util.AuthenticationResponse;
 import br.project.com.parkingcontrol.security.filter.JWTAuthenticate;
 import br.project.com.parkingcontrol.security.filter.JWTValidate;
 import br.project.com.parkingcontrol.util.TokenGenerator;
@@ -30,7 +29,6 @@ public class JWTConfig {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationConfiguration authenticationConfiguration;
     private AuthenticationResponse authenticationResponse;
-    private ErrorResponse errorResponse;
     private final UserServiceImpl userServiceImpl;
 
     public JWTConfig(TokenGenerator tokenGenerator,

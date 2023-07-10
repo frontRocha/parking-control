@@ -1,8 +1,8 @@
 package br.project.com.parkingcontrol.security.filter;
 
 
-import br.project.com.parkingcontrol.businessException.BusinessException;
-import br.project.com.parkingcontrol.util.errorResponse.ErrorResponse;
+import br.project.com.parkingcontrol.util.BusinessException;
+import br.project.com.parkingcontrol.util.ResponseData;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
@@ -10,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -42,7 +43,7 @@ public class JWTValidate extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
         } catch(BusinessException err) {
-            ErrorResponse errorResponse = BusinessException.setErrorResponse(err.getMessage(), HttpStatus.UNAUTHORIZED.value());
+            ResponseEntity<ResponseData> errorResponse = ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse("user not found"));
 
             writerResponseError(response, errorResponse);
             return;
@@ -71,10 +72,10 @@ public class JWTValidate extends OncePerRequestFilter {
         return user;
     }
 
-    private void writerResponseError(HttpServletResponse response, ErrorResponse errorResponse) throws IOException {
+    private void writerResponseError(HttpServletResponse response, ResponseEntity<ResponseData> errorResponse) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
-        response.getWriter().write("{\"message\":\"" + errorResponse.getMessageError() + "\", \"code\":\"" + errorResponse.getCodeError() + "\"}");
+        response.getWriter().write(String.valueOf(errorResponse));
         response.getWriter().flush();
     }
 

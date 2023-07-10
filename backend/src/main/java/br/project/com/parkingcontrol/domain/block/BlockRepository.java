@@ -8,9 +8,9 @@ import java.util.UUID;
 
 @Repository
 public interface BlockRepository extends JpaRepository<Block, UUID> {
-    int countByBlockNameAndUserId(String blockName, Integer userId);
+    boolean existsByBlockNameAndUserId(String blockName, Integer userId);
 
-    int countByBlockNameAndIdNotAndUserId(String blockName, UUID id, Integer userId);
+    boolean existsByBlockNameAndIdNotAndUserId(String blockName, UUID id, Integer userId);
 
     void deleteById(UUID blockId);
 
