@@ -71,10 +71,9 @@ public class UserController {
             Integer userId = extractUserIdFromToken(token);
 
             User userModel = getUserModel(userId);
-
             User updateUser = createUpdateUserModel(userId, user, userModel);
 
-            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(updateUser));
+            return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(userServiceImpl.saveUser(updateUser)));
         } catch(Exception err) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }

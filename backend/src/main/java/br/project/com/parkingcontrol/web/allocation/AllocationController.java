@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -250,14 +251,26 @@ public class AllocationController {
     }
 
     private AllocationFinishedResponse createFinishResponse(Allocation allocation) {
+        double hoursWithDecimals = calculateHoursWithDecimals(allocation.getArrivalTime());
+
         return new AllocationFinishedResponse.Builder()
                 .setArrivalTime(allocation.getArrivalTime())
                 .setDepartureTime(LocalDateTime.now(ZoneId.of("UTC")))
-                .setTotal(0)
+                .setTotal(calculateTotalValue(allocation.getUser().getPricePerHour(), hoursWithDecimals))
                 .setName(allocation.getCustomerName())
                 .setVacancieNumber(allocation.getVacancieName())
                 .setBlockName(allocation.getBlockName())
                 .build();
+    }
+
+    private double calculateHoursWithDecimals(LocalDateTime arrivalTime) {
+        Duration duration = Duration.between(arrivalTime, LocalDateTime.now(ZoneId.of("UTC")));
+        double seconds = duration.getSeconds();
+        return seconds / 3600.0;
+    }
+
+    private double calculateTotalValue(double pricePerHour, double hoursWithDecimals) {
+        return pricePerHour * hoursWithDecimals;
     }
 
     private History createHistoryModel(Allocation allocation,
