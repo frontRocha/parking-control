@@ -60,7 +60,7 @@ public class VacancieService {
     }
 
     public void validateStatusVacancie(Vacancie vacancie) throws BusinessException {
-        if(vacancie.getStatus()) {
+        if(vacancie.isStatus()) {
             throw new BusinessException("This vacancie is already in use");
         }
     }

@@ -9,13 +9,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +28,7 @@ public class JWTAuthenticate extends UsernamePasswordAuthenticationFilter {
     public static final String TOKEN_PASSWORD = "463408a1-54c9-4307-bb1c-6cced559f5a7";
     private static Map<String, Object> userData = new HashMap<>();
 
-    private JWTAuthenticate(TokenGenerator tokenGenerator,
+    public JWTAuthenticate(TokenGenerator tokenGenerator,
                             AuthenticationManager authenticationManager,
                             AuthenticationResponse authenticationResponse) {
         this.tokenGenerator = tokenGenerator;
@@ -60,7 +58,6 @@ public class JWTAuthenticate extends UsernamePasswordAuthenticationFilter {
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
                                               AuthenticationException failed) throws IOException, ServletException {
-
         ResponseData errorResponse = ResponseData.generateUnsuccessfulResponse("user not found");
         writeJsonResponse(response, errorResponse);
     }
@@ -118,37 +115,6 @@ public class JWTAuthenticate extends UsernamePasswordAuthenticationFilter {
             return null;
         } catch(IOException err) {
             return err;
-        }
-    }
-
-    public static class Builder {
-        private TokenGenerator tokenGenerator;
-        private AuthenticationManager authenticationManager;
-        private AuthenticationResponse authenticationResponse;
-
-        public Builder() {
-            this.tokenGenerator = null;
-            this.authenticationManager = null;
-            this.authenticationResponse = null;
-        }
-
-        public Builder setTokenGenerate(TokenGenerator tokenGenerator) {
-            this.tokenGenerator = tokenGenerator;
-            return this;
-        }
-
-        public Builder setAuthenticationManager(AuthenticationManager authenticationManager) {
-            this.authenticationManager = authenticationManager;
-            return this;
-        }
-
-        public Builder setAuthenticationResponse(AuthenticationResponse authenticationResponse) {
-            this.authenticationResponse = authenticationResponse;
-            return this;
-        }
-
-        public JWTAuthenticate build() {
-            return new JWTAuthenticate(tokenGenerator, authenticationManager, authenticationResponse);
         }
     }
 }

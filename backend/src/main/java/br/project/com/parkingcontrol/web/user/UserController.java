@@ -1,5 +1,7 @@
 package br.project.com.parkingcontrol.web.user;
 
+import br.project.com.parkingcontrol.domain.email.Email;
+import br.project.com.parkingcontrol.domain.email.EmailService;
 import br.project.com.parkingcontrol.util.BusinessException;
 import br.project.com.parkingcontrol.util.AuthenticationResponse;
 import br.project.com.parkingcontrol.domain.user.User;
@@ -19,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/")
 public class UserController {
 
@@ -27,16 +29,18 @@ public class UserController {
     private final UserServiceImpl userServiceImpl;
     private final PasswordEncoder encoder;
     private final TokenGenerator tokenGenerator;
+    private final EmailService emailService;
     private static Map<String, Object> userData = new HashMap<>();
 
     public UserController(UserRepository repository,
                           UserServiceImpl userServiceImpl,
                           PasswordEncoder encoder,
-                          TokenGenerator tokenGenerator) {
+                          TokenGenerator tokenGenerator, EmailService emailService) {
         this.repository = repository;
         this.userServiceImpl = userServiceImpl;
         this.tokenGenerator = tokenGenerator;
         this.encoder = encoder;
+        this.emailService = emailService;
     }
 
     @PostMapping("/signup")
@@ -57,8 +61,12 @@ public class UserController {
             defineUserLoginInUserData(user.getLogin());
             AuthenticationResponse response = setUserDataInAuthenticationResponse(token);
 
+            Email emailModel = createEmailModel(user.getLogin());
+            sendEmail(emailModel, token);
+            saveEmail(emailModel);
+
             return ResponseEntity.status(HttpStatus.OK).body(ResponseData.generateSuccessfulResponse(response));
-        } catch(BusinessException err) {
+        } catch(Exception err) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
         }
     }
@@ -125,6 +133,12 @@ public class UserController {
                 .build();
     }
 
+    public Email createEmailModel(String loginUser) {
+        return new Email.Builder()
+                .setEmailTo(loginUser)
+                .build();
+    }
+
     private void setRegistrationDate(LocalDateTime registrationDate,
                                      User user) {
         user.setRegistrationDate(registrationDate);
@@ -138,6 +152,13 @@ public class UserController {
         userData.put("id", id);
     }
 
+    private AuthenticationResponse setUserDataInAuthenticationResponse(String token) {
+        return new AuthenticationResponse.Builder()
+                .setToken(token)
+                .setData(userData)
+                .build();
+    }
+
     private void setUserPassword(User user) {
         user.setPassword(encoder.encode(user.getPassword()));
     }
@@ -146,10 +167,12 @@ public class UserController {
         ResponseEntity.ok(userServiceImpl.saveUser(userModel));
     }
 
-    private AuthenticationResponse setUserDataInAuthenticationResponse(String token) {
-        return new AuthenticationResponse.Builder()
-                .setToken(token)
-                .setData(userData)
-                .build();
+    public void saveEmail(Email response) {
+        emailService.save(response);
+    }
+
+    public void sendEmail(Email emailModel,
+                          String token) {
+        emailService.sendEmail(emailModel, token);
     }
 }

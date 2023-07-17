@@ -48,22 +48,6 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Vacancie> vacancieList;
 
-    public Integer getId() {
-        return id;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public double getPricePerHour() {
-        return pricePerHour;
-    }
-
     private static void fieldValidation(String login, String password) {
         Preconditions.checkArgument(login.length() > 1, "email cannot be null");
         Preconditions.checkArgument(password.length() > 1, "password cannot be null");

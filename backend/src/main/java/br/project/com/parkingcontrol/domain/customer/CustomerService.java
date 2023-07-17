@@ -4,7 +4,6 @@ import br.project.com.parkingcontrol.util.BusinessException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,10 +21,6 @@ public class CustomerService {
     @Transactional
     public void deleteCustomer(UUID id) {
         customerRepository.deleteById(id);
-    }
-
-    public Optional<Customer> findById(UUID id) {
-        return customerRepository.findById(id);
     }
 
     public void existsByCustomerNameAndIdNot(String customerName, String customerLastName, UUID id, Integer userId) throws BusinessException {

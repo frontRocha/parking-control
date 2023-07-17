@@ -5,6 +5,7 @@ import br.project.com.parkingcontrol.security.filter.JWTAuthenticate;
 import br.project.com.parkingcontrol.security.filter.JWTValidate;
 import br.project.com.parkingcontrol.util.TokenGenerator;
 import br.project.com.parkingcontrol.domain.user.UserServiceImpl;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,8 +29,8 @@ public class JWTConfig {
     private final TokenGenerator tokenGenerator;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationConfiguration authenticationConfiguration;
-    private AuthenticationResponse authenticationResponse;
     private final UserServiceImpl userServiceImpl;
+    private AuthenticationResponse authenticationResponse;
 
     public JWTConfig(TokenGenerator tokenGenerator,
                      PasswordEncoder passwordEncoder,
@@ -56,13 +57,8 @@ public class JWTConfig {
                                 .requestMatchers(HttpMethod.POST, "/signup").permitAll()
                                 .anyRequest().authenticated()
                                 .and()
-                                .addFilter(new JWTAuthenticate.Builder()
-                                                .setTokenGenerate(tokenGenerator)
-                                                .setAuthenticationManager(authenticationConfiguration.getAuthenticationManager())
-                                                .setAuthenticationResponse(authenticationResponse)
-                                                .build())
-                                .addFilterAfter(new JWTValidate(),
-                                                JWTAuthenticate.class);
+                                .addFilter(new JWTAuthenticate(tokenGenerator, authenticationConfiguration.getAuthenticationManager(), authenticationResponse))
+                                .addFilterAfter(new JWTValidate(), JWTAuthenticate.class);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -81,7 +77,7 @@ public class JWTConfig {
         corsConfig.addAllowedMethod("PATCH");
         corsConfig.addAllowedMethod("POST");
         corsConfig.addAllowedMethod("OPTIONS");
-        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        corsConfig.setAllowedOrigins(Arrays.asList("*"));
         corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Requestor-Type"));
         corsConfig.setExposedHeaders(Arrays.asList("X-Get-Header"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

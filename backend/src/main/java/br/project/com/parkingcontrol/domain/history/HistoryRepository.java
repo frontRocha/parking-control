@@ -1,6 +1,5 @@
 package br.project.com.parkingcontrol.domain.history;
 
-import br.project.com.parkingcontrol.domain.allocation.Allocation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

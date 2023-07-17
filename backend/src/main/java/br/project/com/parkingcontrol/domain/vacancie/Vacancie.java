@@ -7,11 +7,13 @@ import br.project.com.parkingcontrol.domain.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "TB_VACANCIES")
@@ -36,54 +38,6 @@ public class Vacancie {
 
     @OneToOne(mappedBy = "vacancie")
     private Allocation allocation;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setVacancieNumber(Integer vacancieNumber) {
-        this.vacancieNumber = vacancieNumber;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public void setBlock(Block block) {
-        this.block = block;
-    }
-
-    public void setAllocation(Allocation allocation) {
-        this.allocation = allocation;
-    }
-
-    public Integer getVacancieNumber() {
-        return vacancieNumber;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Block getBlock() {
-        return block;
-    }
-
-    public boolean getStatus() {
-        return status;
-    }
-
-    public Allocation getAllocation() {
-        return allocation;
-    }
 
     public static class Builder {
         private UUID id;

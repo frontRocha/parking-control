@@ -1,10 +1,12 @@
 package br.project.com.parkingcontrol.domain.allocation;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class AllocationFinishedResponse {
@@ -14,30 +16,6 @@ public class AllocationFinishedResponse {
     private String name;
     private Integer vacancieNumber;
     private String blockName;
-
-    public LocalDateTime getArrivalTime() {
-        return arrivalTime;
-    }
-
-    public LocalDateTime getDepartureTime() {
-        return departureTime;
-    }
-
-    public double getTotal() {
-        return total;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Integer getVacancieNumber() {
-        return vacancieNumber;
-    }
-
-    public String getBlockName() {
-        return blockName;
-    }
 
     public static class Builder {
         private LocalDateTime arrivalTime;

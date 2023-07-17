@@ -7,10 +7,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "TB_CUSTOMER")
@@ -32,30 +34,6 @@ public class Customer {
 
     @OneToOne(mappedBy = "customer")
     private Allocation allocation;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getPlateCar() {
-        return plateCar;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Allocation getAllocation() {
-        return allocation;
-    }
 
     public static void validarCampos(String name, String lastName, String plateCar) {
         Preconditions.checkArgument(name.length() > 1, "customer name cannot be null");

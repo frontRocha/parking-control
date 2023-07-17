@@ -1,15 +1,14 @@
 package br.project.com.parkingcontrol.util;
 
+import lombok.AllArgsConstructor;
+
 import java.util.Map;
 
+@AllArgsConstructor
 public class AuthenticationResponse {
     private String token;
     private Map<String, Object> data;
 
-    AuthenticationResponse(String token, Map<String, Object> data) {
-        this.token = token;
-        this.data = data;
-    }
 
     public String getToken() {
         return token;

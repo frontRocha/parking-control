@@ -34,26 +34,6 @@ public class Block {
     @OneToMany(mappedBy = "block")
     private List<Vacancie> vacancieList;
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getBlockName() {
-        return blockName;
-    }
-
-    public Integer getTotalVacancies() {
-        return totalVacancies;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public List<Vacancie> getVacancieList() {
-        return vacancieList;
-    }
-
     private static void fieldValidation(String blockName, Integer totalVacancies, User user) {
         Preconditions.checkNotNull(Strings.isNullOrEmpty(blockName),"block name cannot be null");
         Preconditions.checkArgument(blockName.length() == 1,"block name must be just one character");

@@ -1,10 +1,11 @@
 package br.project.com.parkingcontrol.security.filter;
 
-
 import br.project.com.parkingcontrol.util.BusinessException;
 import br.project.com.parkingcontrol.util.ResponseData;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class JWTValidate extends OncePerRequestFilter {
 
@@ -30,32 +30,44 @@ public class JWTValidate extends OncePerRequestFilter {
                                     FilterChain chain) throws ServletException, IOException {
         try {
             String attribute = request.getHeader(HEADER_ATTRIBUTE);
-
             if (attribute == null || !attribute.startsWith(ATTRIBUTE_PREFIX)) {
                 chain.doFilter(request, response);
                 return;
             }
 
-            validateHeaders(attribute);
-
             String token = attribute.replace(ATTRIBUTE_PREFIX, "");
+            validateToken(token);
+
             UsernamePasswordAuthenticationToken authenticationToken = getAuthenticationToken(token);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
         } catch(BusinessException err) {
-            ResponseEntity<ResponseData> errorResponse = ResponseEntity.status(HttpStatus.CONFLICT).body(ResponseData.generateUnsuccessfulResponse("user not found"));
+            ResponseEntity<ResponseData> errorResponse = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ResponseData.generateUnsuccessfulResponse(err.getMessage()));
 
-            writerResponseError(response, errorResponse);
+            writerResponseError(response, errorResponse.getBody());
             return;
         }
 
         chain.doFilter(request, response);
     }
 
+    private void validateHeaders(String attribute) throws BusinessException {
+        if (attribute == null || !attribute.startsWith(ATTRIBUTE_PREFIX)) {
+            throw new BusinessException("token not found");
+        }
+    }
+
+    private DecodedJWT validateToken(String token) {
+        try {
+            return JWT.require(Algorithm.HMAC512(JWTAuthenticate.TOKEN_PASSWORD))
+                    .build()
+                    .verify(token);
+        } catch (Exception ex) {
+            throw new BusinessException("invalid token");
+        }
+    }
+
     private UsernamePasswordAuthenticationToken getAuthenticationToken(String token) throws BusinessException  {
         DecodedJWT decodedJWT = JWT.decode(token);
-        Date expirationDate = decodedJWT.getExpiresAt();
-        validateExpirationToken(expirationDate);
 
         String user = decodedJWT.getSubject();
 
@@ -72,22 +84,12 @@ public class JWTValidate extends OncePerRequestFilter {
         return user;
     }
 
-    private void writerResponseError(HttpServletResponse response, ResponseEntity<ResponseData> errorResponse) throws IOException {
+    private void writerResponseError(HttpServletResponse response, ResponseData errorResponse) throws IOException {
+        String jsonResponse = new ObjectMapper().writeValueAsString(errorResponse);
+
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
-        response.getWriter().write(String.valueOf(errorResponse));
+        response.getWriter().write(jsonResponse);
         response.getWriter().flush();
-    }
-
-    private void validateExpirationToken(Date expirationDate) throws BusinessException {
-        if (expirationDate != null && expirationDate.before(new Date())) {
-            throw new BusinessException("Token expired");
-        }
-    }
-
-    private void validateHeaders(String atributo) throws BusinessException {
-        if (atributo == null || !atributo.startsWith(ATTRIBUTE_PREFIX)) {
-            throw new BusinessException("Token not found");
-        }
     }
 }

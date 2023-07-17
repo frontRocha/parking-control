@@ -1,16 +1,16 @@
 package br.project.com.parkingcontrol.domain.history;
 
 import br.project.com.parkingcontrol.domain.user.User;
-import br.project.com.parkingcontrol.domain.vacancie.Vacancie;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity(name="TB_HISTORY")
@@ -39,46 +39,6 @@ public class History {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public LocalDateTime getArrivalTime() {
-        return arrivalTime;
-    }
-
-    public LocalDateTime getDepartureTime() {
-        return departureTime;
-    }
-
-    public String getCustomerName() {
-        return customerName;
-    }
-
-    public String getCustomerLastName() {
-        return customerLastName;
-    }
-
-    public String getPlateCar() {
-        return plateCar;
-    }
-
-    public Integer getVacancieName() {
-        return vacancieName;
-    }
-
-    public String getBlockName() {
-        return blockName;
-    }
-
-    public double getTotal() {
-        return total;
-    }
-
-    public User getUser() {
-        return user;
-    }
 
     public static class Builder {
         private UUID id;

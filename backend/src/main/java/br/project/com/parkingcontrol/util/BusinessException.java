@@ -1,6 +1,6 @@
 package br.project.com.parkingcontrol.util;
 
-public class BusinessException extends RuntimeException{
+public class BusinessException extends RuntimeException {
     public BusinessException(String msg) {
         super(msg);
     }
